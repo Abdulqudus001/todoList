@@ -70,13 +70,37 @@ span {
 	text-align: center;
 	color: white;
 	margin-right: 20px;
-	width: 0;
+	padding: 0 10px;
 	display: inline-block;
-	transition: 0.2s linear;
+	transition: 0.5s linear;
 	opacity: 0;
+}
+
+.edit {
+	float: right;
+	background: #6fe455;
+	margin-right: 0px;
+	opacity: 0;
+	color: white;
 }
 
 li:hover span {
 	width: 3vw;
 	opacity: 1.0;
+}
+
+@media (min-width: 580px) {
+	.to-do {
+		width: 60%;
+	}
+}
+
+@media (min-width: 840px) {
+	.to-do {
+		width: 40%;
+	}
+	span {
+		padding: 0;
+		transition: 0.2 linear;
+	}
 }
