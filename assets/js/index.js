@@ -1,12 +1,9 @@
 // Initialize Firebase
 // TODO: Replace with your project's customized code snippet
-var config = {
-	apiKey: "AIzaSyB8IZneKgocwhhpJW1e8wHY-mAxBMREAmo",
-	authDomain: "todolist-b1426.firebaseapp.com",
-	databaseURL: "https://todolist-b1426.firebaseio.com",
-	projectId: "todolist-b1426",
-	storageBucket: "todolist-b1426.appspot.com",
-	messagingSenderId: "138602765444"
+var demoConfig = {
+  apiKey: '### FIREBASE API KEY ###',
+  authDomain: '### FIREBASE AUTH DOMAIN ###',
+  projectId: '### CLOUD FIRESTORE PROJECT ID ###'
 };
 
 firebase.initializeApp(config);
@@ -16,12 +13,15 @@ db.settings({
 	timestampsInSnapshots: true
 });
 
+var index = 1;
+
 // Get todo items from firebase on first load
 db.collection('items').get().then((snapshot) => {
 	snapshot.forEach((document) => {
 		$('ul').append(
 			`<li><span class="delete"><i class="fa fa-trash"></i></span> ${document.data().item} <span class="edit"><i class="fa fa-pencil-square-o"></i></span></li>`
 		);
+		index ++; // Increment index to determing number of documents in the collection
 	});
 });
 
@@ -39,12 +39,16 @@ $('ul').on('click', '.delete', function(event){
 	event.stopPropagation(); // Prevent event bubbling
 });
 
-// Sends the content to the input field 
+// Sends the content to the input field to enable todo item editing
+var indexOfItemToEdit = 1;
 $('ul').on('click', '.edit', function(event) {
+	// console.log($(this).parent().size());
+	indexOfItemToEdit = $(this).parent().index() + 1;
 	$('input[type="text"').val(`${$(this).parent().text()}`);  
 	$(this).parent().remove();
 	event.stopPropagation();
 });
+
 
 // Get value of input and add to list
 $('input[type="text"').keypress(function(event){
@@ -54,18 +58,35 @@ $('input[type="text"').keypress(function(event){
 		let newItem = $(this).val();
 		$(this).val(""); // Empties the content of the input field
 		$('ul').append(`<li><span class="delete"><i class="fa fa-trash"></i></span> ${newItem} <span class="edit"><i class="fa fa-pencil-square-o"></i></span></li>`);
-		// Add data to firestore
-		db.collection('items').add({
-			item: newItem,
-			date: new Date().toLocaleDateString(),
-			time: new Date().toLocaleTimeString()
-		})
-		.then((docref) => {
-			console.log('Data written successfully');
-		})
-		.catch((error) => {
-			console.log(`Error writing data ${error}`);
-		})
+		// Check if indexOfItemToEdit variable exists in the database
+		db.collection('items').doc(indexOfItemToEdit.toString()).get()
+		.then((doc) => {
+			console.log(doc);
+			if (doc.exists === false) {
+				// Add data to firestore if it doesn't exist
+				db.collection('items').doc(index.toString()).set({
+					item: newItem,
+					date: new Date().toLocaleDateString(),
+					time: new Date().toLocaleTimeString()
+				})
+				.then((docref) => {
+					console.log('Data written successfully');
+				})
+				.catch((error) => {
+					console.log(`Error writing data ${error}`);
+				});
+			} else {
+				db.collection('items').doc(indexOfItemToEdit.toString()).update({
+					item: newItem,
+					date: new Date().toLocaleDateString(),
+					time: new Date().toLocaleTimeString()
+				}).then(() => {
+					console.log('Updated successfully');
+				});
+			};
+		}).catch((error) => {
+			console.log(error);
+		});
 	}
 });
 
