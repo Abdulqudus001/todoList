@@ -13,6 +13,12 @@ db.settings({
 	timestampsInSnapshots: true
 });
 
+db.enablePersistence().catch((err) => {
+	if (err.code === 'uninplemented') {
+		console.log('Cannot be implemented in browser');
+	}
+});
+
 var index = 1;
 
 // Get todo items from firebase on first load
@@ -35,6 +41,13 @@ $('ul').on('click', 'li', function() {
 $('ul').on('click', '.delete', function(event){
 	$(this).parent().fadeOut(500, function(){
 		$(this).remove();
+	});
+	indexOfItemToDelete = $(this).parent().index() + 1;
+	db.collection('items').doc(indexOfItemToDelete.toString()).delete()
+	.then((success) => {
+		console.log('Successfully deleted');
+	}).catch((error) => {
+		console.log('Error ' + error);
 	});
 	event.stopPropagation(); // Prevent event bubbling
 });
